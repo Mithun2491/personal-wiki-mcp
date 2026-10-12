@@ -1,0 +1,47 @@
+# Virtual environments — never commit
+.venv/
+venv/
+env/
+
+# Python caches
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Test / tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Secrets and credentials
+.env
+.env.*
+*.pem
+*.key
+secrets.json
+credentials*
+
+# Logs
+*.log
+logs/
+
+# Local OpenCode configuration (machine-specific)
+opencode.json
+opencode.jsonc
+.opencode/
+
+# Personal documents, CV material, wiki data — never belong in this repo
+*.pdf
+Mithun*
+mithun*
+.wiki/
+wiki/
+raw/papers/
+
+# OS / editor noise
+Thumbs.db
+desktop.ini
+.DS_Store
+.idea/

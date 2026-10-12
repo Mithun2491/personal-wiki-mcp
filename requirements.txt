@@ -1,0 +1,3 @@
+# Runtime dependencies (pinned to the tested versions).
+# Install into the project-local venv only:  .venv\Scripts\python -m pip install -r requirements.txt
+mcp==2.3.0

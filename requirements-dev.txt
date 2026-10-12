@@ -1,0 +1,3 @@
+# Development / test dependencies (pinned to the tested versions).
+-r requirements.txt
+pytest==9.1.1
