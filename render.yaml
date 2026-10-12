@@ -1,0 +1,35 @@
+# Render blueprint for the personal-wiki-mcp remote endpoint (free tier).
+#
+# Security notes:
+# - MCP_AUTH_TOKEN is a secret: `sync: false` keeps its value out of Git;
+#   set it in the Render dashboard (or `render secret set`).
+# - The wiki served by default is the synthetic deploy-wiki/ sample hub.
+#   To serve a private snapshot, set WIKI_SNAPSHOT_URL (and optionally
+#   WIKI_SNAPSHOT_SHA256) as secrets; see DEPLOYMENT.md.
+# - GET /health is intentionally unauthenticated and returns only
+#   {"status": "ok"} so Render's health probes work without credentials.
+# - After first deploy, set MCP_ALLOWED_HOSTS to your service hostname
+#   (e.g. your-service.onrender.com) to enable Host-header validation.
+
+services:
+  - type: web
+    name: personal-wiki-mcp
+    runtime: python
+    plan: free
+    region: oregon
+    buildCommand: pip install -r requirements.txt
+    startCommand: python scripts/fetch_private_wiki.py && python remote_server.py
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.0"
+      - key: WIKI_ROOT
+        value: ./deploy-wiki
+      - key: MCP_AUTH_TOKEN
+        sync: false
+      - key: WIKI_SNAPSHOT_URL
+        sync: false
+      - key: WIKI_SNAPSHOT_SHA256
+        sync: false
+      - key: MCP_ALLOWED_HOSTS
+        sync: false

@@ -1,0 +1,14 @@
+{
+  "default": "<HUB>",
+  "wikis": {
+    "hub": {
+      "path": "<HUB>",
+      "description": "Synthetic sample hub shipped with the repo (no personal data)"
+    },
+    "sample": {
+      "path": "topics/sample",
+      "description": "Demonstration topic wiki for the Render deployment",
+      "status": "active"
+    }
+  }
+}

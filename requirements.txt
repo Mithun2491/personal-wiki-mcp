@@ -1,3 +1,6 @@
 # Runtime dependencies (pinned to the tested versions).
 # Install into the project-local venv only:  .venv\Scripts\python -m pip install -r requirements.txt
 mcp==2.3.0
+# uvicorn is already a transitive dependency of mcp; pinned explicitly
+# because remote_server.py relies on it for the Render HTTP entry point.
+uvicorn==0.54.0

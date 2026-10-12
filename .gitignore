@@ -40,6 +40,11 @@ mithun*
 wiki/
 raw/papers/
 
+# Synthetic sample hub for the Render deploy — intentionally committed.
+# Contains only fake content (no personal data, no CVs, no tokens).
+!deploy-wiki/
+!deploy-wiki/**
+
 # OS / editor noise
 Thumbs.db
 desktop.ini
