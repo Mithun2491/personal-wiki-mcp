@@ -13,5 +13,5 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const markdown = await callWikiTool("read_article", { path });
     const payload: ArticlePayload = { path, markdown };
     return NextResponse.json(payload);
-  });
+  }, "article");
 }

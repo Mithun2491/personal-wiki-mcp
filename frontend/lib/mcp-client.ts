@@ -1,7 +1,10 @@
 import "server-only";
 
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import {
+  StreamableHTTPClientTransport,
+  StreamableHTTPError,
+} from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { UnauthorizedError } from "@modelcontextprotocol/sdk/client/auth.js";
 import type { ApiErrorCode, ConnectionMode } from "@/lib/types";
 
@@ -80,22 +83,13 @@ function isNetworkError(err: unknown): boolean {
 
 function classifyError(err: unknown): McpError {
   if (err instanceof McpError) return err;
-  if (
-    err instanceof UnauthorizedError ||
-    (err instanceof Error &&
-      err.name === "StreamableHTTPError" &&
-      (err as { code?: number }).code === 401)
-  ) {
+  if (err instanceof UnauthorizedError || (err instanceof StreamableHTTPError && err.code === 401)) {
     return new McpError(
       "unauthorized",
       "The wiki backend rejected the configured credentials.",
     );
   }
-  if (
-    err instanceof Error &&
-    err.name === "StreamableHTTPError" &&
-    (err as { code?: number }).code === 404
-  ) {
+  if (err instanceof StreamableHTTPError && err.code === 404) {
     return new McpError(
       "unreachable",
       "The MCP endpoint was not found. Check MCP_SERVER_URL.",
@@ -110,10 +104,42 @@ function classifyError(err: unknown): McpError {
       "The wiki backend is unreachable. Check that it is running.",
     );
   }
-  if (err instanceof Error && err.name === "StreamableHTTPError") {
+  if (err instanceof StreamableHTTPError) {
     return new McpError("backend", "The wiki backend returned an unexpected response.");
   }
   return new McpError("backend", "The wiki backend could not complete the request.");
+}
+
+export interface ErrorFingerprint {
+  name: string;
+  code: ApiErrorCode;
+  httpStatus: number | null;
+}
+
+function errorNameOf(err: unknown): string {
+  if (err instanceof McpError) return "McpError";
+  if (err instanceof UnauthorizedError) return "UnauthorizedError";
+  if (err instanceof StreamableHTTPError) return "StreamableHTTPError";
+  if (err instanceof Error) return err.name || "Error";
+  return typeof err;
+}
+
+function httpStatusOf(err: unknown): number | null {
+  if (err instanceof StreamableHTTPError) return err.code ?? null;
+  return null;
+}
+
+export function fingerprintError(err: unknown): ErrorFingerprint {
+  try {
+    const classified = classifyError(err);
+    return {
+      name: errorNameOf(err),
+      code: classified.code,
+      httpStatus: httpStatusOf(err),
+    };
+  } catch {
+    return { name: "unknown", code: "internal", httpStatus: null };
+  }
 }
 
 export function resetClient(): void {

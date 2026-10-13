@@ -13,5 +13,5 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const markdown = await callWikiTool("get_wiki_index", { wiki });
     const payload: IndexPayload = { wiki, markdown };
     return NextResponse.json(payload);
-  });
+  }, "index");
 }

@@ -1,6 +1,7 @@
+import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
-import { McpError } from "@/lib/mcp-client";
+import { McpError, fingerprintError, type ErrorFingerprint } from "@/lib/mcp-client";
 import type { ApiErrorCode } from "@/lib/types";
 
 const STATUS_FOR_CODE: Record<ApiErrorCode, number> = {
@@ -62,18 +63,62 @@ export function errorResponse(err: unknown): NextResponse {
   return jsonError("internal", "Something went wrong on the server.");
 }
 
+export interface DiagnosticLog {
+  route: string;
+  correlationId: string;
+  error: string;
+  code: ApiErrorCode;
+  httpStatus: number | null;
+}
+
+function emitDiagnostic(log: DiagnosticLog): void {
+  try {
+    console.error(JSON.stringify(log));
+  } catch {
+    /* logging must never throw */
+  }
+}
+
+function safeFingerprint(err: unknown): ErrorFingerprint {
+  try {
+    return fingerprintError(err);
+  } catch {
+    return { name: "unknown", code: "internal", httpStatus: null };
+  }
+}
+
+export function logProbeFailure(route: string, code: ApiErrorCode): void {
+  emitDiagnostic({
+    route,
+    correlationId: randomUUID().slice(0, 8),
+    error: "probe",
+    code,
+    httpStatus: null,
+  });
+}
+
 export async function handleApi(
   fn: () => Promise<NextResponse>,
+  route = "api",
 ): Promise<NextResponse> {
   try {
     return await fn();
   } catch (err) {
-    if (
+    const res =
       err instanceof Error &&
       (err.name === "TimeoutError" || err.name === "AbortError")
-    ) {
-      return jsonError("timeout", "The wiki backend did not respond in time.");
+        ? jsonError("timeout", "The wiki backend did not respond in time.")
+        : errorResponse(err);
+    if (res.status >= 500) {
+      const fp = safeFingerprint(err);
+      emitDiagnostic({
+        route,
+        correlationId: randomUUID().slice(0, 8),
+        error: fp.name,
+        code: fp.code,
+        httpStatus: fp.httpStatus,
+      });
     }
-    return errorResponse(err);
+    return res;
   }
 }

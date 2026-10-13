@@ -10,5 +10,5 @@ export async function GET(): Promise<NextResponse> {
     const text = await callWikiTool("list_wikis", {});
     const data = wikiListSchema.parse(JSON.parse(text));
     return NextResponse.json(data);
-  });
+  }, "wikis");
 }

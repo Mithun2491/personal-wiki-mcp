@@ -25,5 +25,5 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     });
     const data = searchResultSchema.parse(JSON.parse(text));
     return NextResponse.json(data);
-  });
+  }, "search");
 }
